@@ -75,6 +75,10 @@ GLuint window_buffer;
 GLuint fbo;
 GLuint depth_rbo;
 GLuint fbo_tex;
+//
+GLuint effect_mode;
+int mode = 0;
+const int mode_num = 2;
 
 void My_Reshape(int weight, int height);
 
@@ -356,6 +360,8 @@ void My_Init()
 	glAttachShader(program2, fs2);
 	glLinkProgram(program2);
 
+	effect_mode = glGetUniformLocation(program2, "effect_mode");
+
 
 	glGenVertexArrays(1, &window_vao);
 	glBindVertexArray(window_vao);
@@ -435,6 +441,7 @@ void My_Display()
 	// (2) Use the correct shader program
 	glBindVertexArray(window_vao);
 	glUseProgram(program2);
+	glUniform1i(effect_mode, mode);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	
     glutSwapBuffers();
@@ -614,9 +621,11 @@ void My_SpecialKeys(int key, int x, int y)
 		break;
 	case GLUT_KEY_LEFT:
 		printf("Left arrow is pressed at (%d, %d)\n", x, y);
+		mode = ((mode - 1 + mode_num) % mode_num);
 		break;
 	case GLUT_KEY_RIGHT:
 		printf("Right arrow is pressed at (%d, %d)\n", x, y);
+		mode = ((mode + 1 + mode_num) % mode_num);
 		break;
 	case GLUT_KEY_UP:
 		printf("Up arrow is pressed at (%d, %d)\n", x, y);
