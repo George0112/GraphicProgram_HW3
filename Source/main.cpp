@@ -79,8 +79,8 @@ float window_resolution[2] = { 600.0, 600.0 };
 GLuint window_resolution_id;
 //
 GLuint effect_mode;
-int mode = 5;
-const int mode_num = 7;
+int mode = 6;
+const int mode_num = 8;
 //comparision bar
 int bar_pos = window_resolution[0] / 2;
 int mouse_mode = 0;
@@ -90,6 +90,10 @@ int bar_clicked = 0;
 GLuint mouse_pos_id;
 GLuint mouse_mode_id;
 float mouse_pos[2] = { 0.5, 0.5 };
+//time
+int delta_time;
+float time;
+GLuint time_id;
 
 
 void My_Reshape(int weight, int height);
@@ -377,6 +381,7 @@ void My_Init()
 	mouse_pos_id = glGetUniformLocation(program2, "mouse_pos");
 	mouse_mode_id = glGetUniformLocation(program2, "mouse_mode");
 	window_resolution_id = glGetUniformLocation(program2, "resolution");
+	time_id = glGetUniformLocation(program2, "time");
 
 
 	glGenVertexArrays(1, &window_vao);
@@ -403,6 +408,9 @@ void My_Init()
 
 void My_Display()
 {
+	delta_time = glutGet(GLUT_ELAPSED_TIME);
+	time = (float)delta_time / timer_speed / 200;
+	printf("time: %f\n", time);
 	// TODO :
 	// (1) Bind the framebuffer object correctly
 	// (2) Draw the buffer with color
@@ -462,6 +470,7 @@ void My_Display()
 	glUniform2fv(mouse_pos_id, 1, mouse_pos);
 	glUniform2fv(window_resolution_id, 1, window_resolution);
 	glUniform1i(mouse_mode_id, mouse_mode);
+	glUniform1f(time_id, time);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	
     glutSwapBuffers();

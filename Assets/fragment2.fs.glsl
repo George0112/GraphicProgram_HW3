@@ -6,7 +6,8 @@ uniform int effect_mode;
 uniform float bar_pos;    
 uniform vec2 mouse_pos; 
 uniform int mouse_mode;     
-uniform vec2 resolution;                                          
+uniform vec2 resolution;  
+uniform float time;                                        
 	                                                                               
 out vec4 color;                                                                
 	                                                                               
@@ -36,7 +37,7 @@ void main(void)
 			mode = effect_mode;
 		}else if(fs_in.texcoord.x > bar_pos + bar_width){
 			// TODO change if add new effect mode
-			mode = 6;
+			mode = -3;
 		}else{
 			mode = -1;
 		}
@@ -64,6 +65,8 @@ void main(void)
 			color = texture(tex, vec2(coord.x, coord.y));
 		}
 
+	}else if(mode == -3){
+		color = texture(tex, fs_in.texcoord);
 	}else if(mode == 0){
 		vec4 texture_color_Left = texture(tex, fs_in.texcoord - 0.005);		
 		vec4 texture_color_Right = texture(tex, fs_in.texcoord + 0.005);		
@@ -138,7 +141,7 @@ void main(void)
 		float twoSigmaESquared = 2.0 * sigma_e * sigma_e;		
 		float twoSigmaRSquared = 2.0 * sigma_r * sigma_r;		
 		int halfWidth = int(ceil( 2.0 * sigma_r ));
-		vec2 img_size = vec2(1024,768);
+		vec2 img_size = resolution;
 		int nbins = 8;
 		///DoG
 		vec2 sum = vec2(0.0);
@@ -181,8 +184,40 @@ void main(void)
 		}
 		vec4 blur_color = color / n;
 		color = (blur_color + quantization_color) / 2.0 * DoG_color;
+	}else if(mode == 6){
+		vec2 tc = fs_in.texcoord.xy;
+		vec2 p = -1.0 + 2.0 * tc;
+		float len = length(p);
+		vec2  coord = tc + (p/len)*cos(len*12.0-time*4.0)*0.03;
+		color = texture(tex, coord);
 	}else{
-		color = texture(tex, fs_in.texcoord);
-	}                                                                
+		vec2 img_size = resolution;
+		color = vec4(0);	
+		int n = 0;
+		int half_size = 2;
+		for ( int i = -half_size; i <= half_size; ++i ) {       
+			for ( int j = -half_size; j <= half_size; ++j ) {
+				vec4 c = texture(tex, fs_in.texcoord + vec2(i,j)/img_size);
+				color+= c;
+				n++;
+			}
+		}
+		vec4 blur_color1 = color / n;
+
+		n = 0;
+		half_size = 3;
+		for ( int i = -half_size; i <= half_size; ++i ) {       
+			for ( int j = -half_size; j <= half_size; ++j ) {
+				vec4 c = texture(tex, fs_in.texcoord + vec2(i,j)/img_size);
+				color+= c;
+				n++;
+			}
+		}
+		vec4 blur_color2 = color / n;
+
+		vec4 origin_color = texture(tex, fs_in.texcoord.xy);
+
+		color = origin_color * 0.7 + blur_color1 * 0.2 + blur_color2 * 0.4;
+	}                                                         
 		
 }                           
