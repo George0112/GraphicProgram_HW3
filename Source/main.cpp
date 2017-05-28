@@ -75,15 +75,22 @@ GLuint window_buffer;
 GLuint fbo;
 GLuint depth_rbo;
 GLuint fbo_tex;
+float window_resolution[2] = { 600.0, 600.0 };
+GLuint window_resolution_id;
 //
 GLuint effect_mode;
 int mode = 5;
 const int mode_num = 7;
 //comparision bar
-int bar_pos = 300;
+int bar_pos = window_resolution[0] / 2;
 int mouse_mode = 0;
 GLuint bar;
 int bar_clicked = 0;
+//magnifier
+GLuint mouse_pos_id;
+GLuint mouse_mode_id;
+float mouse_pos[2] = { 0.5, 0.5 };
+
 
 void My_Reshape(int weight, int height);
 
@@ -367,6 +374,9 @@ void My_Init()
 
 	effect_mode = glGetUniformLocation(program2, "effect_mode");
 	bar = glGetUniformLocation(program2, "bar_pos");
+	mouse_pos_id = glGetUniformLocation(program2, "mouse_pos");
+	mouse_mode_id = glGetUniformLocation(program2, "mouse_mode");
+	window_resolution_id = glGetUniformLocation(program2, "resolution");
 
 
 	glGenVertexArrays(1, &window_vao);
@@ -448,7 +458,10 @@ void My_Display()
 	glBindVertexArray(window_vao);
 	glUseProgram(program2);
 	glUniform1i(effect_mode, mode);
-	glUniform1f(bar, (float)bar_pos / (float)600);
+	glUniform1f(bar, (float)bar_pos / (float)window_resolution[0]);
+	glUniform2fv(mouse_pos_id, 1, mouse_pos);
+	glUniform2fv(window_resolution_id, 1, window_resolution);
+	glUniform1i(mouse_mode_id, mouse_mode);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	
     glutSwapBuffers();
@@ -498,6 +511,9 @@ void InitialCamera(int index) {
 
 void My_Reshape(int width, int height)
 {
+	bar_pos = bar_pos * width / window_resolution[0];
+	window_resolution[0] = width;
+	window_resolution[1] = height;
 	glViewport(0, 0, width, height);
 	float viewportAspect = (float)width / (float)height;
 	//mvp = lookAt(vec3(500.0f, 400.0f, 500.0f), vec3(500.0f, 200.0f, 500.0f), vec3(0.0f, 1.0f, 0.0f));
@@ -562,7 +578,10 @@ void My_Mouse_Motion(int x, int y)
 		}*/
 		CameraUpdate();
 	}
-	else {
+	else if(mouse_mode == 2){
+		mouse_pos[0] = (float)x / window_resolution[0];
+		mouse_pos[1] = (float)y / window_resolution[1];
+	}else {
 		if (bar_clicked == 1) {
 			bar_pos = x;
 		}
@@ -578,8 +597,9 @@ void My_Mouse(int button, int state, int x, int y)
 	{
 		oldX = x;
 		oldY = y;
-		float bar_width = 3;
-		if (x >= bar_pos - 3 && x <= bar_pos + 3) {
+		float bar_width = 0.005 * window_resolution[0];
+		if (x >= bar_pos - bar_width && x <= bar_pos + bar_width) {
+			printf("Bar clicked!!\n");
 			bar_clicked = 1;
 		}
 		else {
@@ -653,16 +673,17 @@ void My_SpecialKeys(int key, int x, int y)
 		printf("Up arrow is pressed at (%d, %d)\n", x, y);
 		scene_mode = ((scene_mode + 1 + scene_num) % scene_num);
 		InitialCamera(scene_mode);
-		printf("Change scene to scene %d", scene_mode);
+		printf("Change scene to scene %d\n", scene_mode);
 		break;
 	case GLUT_KEY_DOWN:
 		printf("Down arrow is pressed at (%d, %d)\n", x, y);
 		scene_mode = ((scene_mode - 1 + scene_num) % scene_num);
 		InitialCamera(scene_mode);
-		printf("Change scene to scene %d", scene_mode);
+		printf("Change scene to scene %d\n", scene_mode);
 		break;
 	case GLUT_KEY_SHIFT_L:
-		mouse_mode = (mouse_mode++)%2;
+		mouse_mode = (mouse_mode + 1)%3;
+		printf("Mouse mode change to mode #%d\n", mouse_mode);
 		break;
 	default:
 		printf("Other special key is pressed at (%d, %d)\n", x, y);

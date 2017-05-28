@@ -3,7 +3,10 @@
 	                                                                               
 uniform sampler2D tex;  
 uniform int effect_mode;   
-uniform float bar_pos;                                                    
+uniform float bar_pos;    
+uniform vec2 mouse_pos; 
+uniform int mouse_mode;     
+uniform vec2 resolution;                                          
 	                                                                               
 out vec4 color;                                                                
 	                                                                               
@@ -27,17 +30,28 @@ void main(void)
 	offset[7] = vec2(0.0, 1.0);
 	offset[8] = vec2(1.0, 1.0);  
 	int mode;
-	float bar_width = 0.005;   
-	if(fs_in.texcoord.x < bar_pos - bar_width){
+	if(mouse_mode == 0){
+		float bar_width = 0.005;   
+		if(fs_in.texcoord.x < bar_pos - bar_width){
+			mode = effect_mode;
+		}else if(fs_in.texcoord.x > bar_pos + bar_width){
+			// TODO change if add new effect mode
+			mode = 6;
+		}else{
+			mode = -1;
+		}
+	}else if(mouse_mode == 1){
 		mode = effect_mode;
-	}else if(fs_in.texcoord.x > bar_pos + bar_width){
-		// TODO change if add new effect mode
-		mode = 6;
 	}else{
-		mode = -1;
+		//TODO magnifier
+		mode  = effect_mode;
 	}
+	
+
 	if(mode == -1){
 		color = vec4(0.0, 1.0, 0.0, 1.0);
+	}else if(mode == -2){
+		
 	}else if(mode == 0){
 		vec4 texture_color_Left = texture(tex, fs_in.texcoord - 0.005);		
 		vec4 texture_color_Right = texture(tex, fs_in.texcoord + 0.005);		
