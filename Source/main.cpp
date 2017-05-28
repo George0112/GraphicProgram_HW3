@@ -79,6 +79,11 @@ GLuint fbo_tex;
 GLuint effect_mode;
 int mode = 5;
 const int mode_num = 7;
+//comparision bar
+int bar_pos = 300;
+int mouse_mode = 0;
+GLuint bar;
+int bar_clicked = 0;
 
 void My_Reshape(int weight, int height);
 
@@ -361,6 +366,7 @@ void My_Init()
 	glLinkProgram(program2);
 
 	effect_mode = glGetUniformLocation(program2, "effect_mode");
+	bar = glGetUniformLocation(program2, "bar_pos");
 
 
 	glGenVertexArrays(1, &window_vao);
@@ -442,6 +448,7 @@ void My_Display()
 	glBindVertexArray(window_vao);
 	glUseProgram(program2);
 	glUniform1i(effect_mode, mode);
+	glUniform1f(bar, (float)bar_pos / (float)600);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	
     glutSwapBuffers();
@@ -537,22 +544,29 @@ void My_Timer(int val)
 
 void My_Mouse_Motion(int x, int y)
 {
-	GLfloat x_offset = x - oldX;
-	GLfloat y_offset = y - oldY;
-	oldX = x;
-	oldY = y;
+	if (mouse_mode == 1) {
+		GLfloat x_offset = x - oldX;
+		GLfloat y_offset = y - oldY;
+		oldX = x;
+		oldY = y;
 
-	GLfloat camera_x = x_offset * mouse_sensitivty;
-	GLfloat camera_y = y_offset * mouse_sensitivty;
-	camera_yaw += x_offset;
-	camera_pitch += y_offset;
-	/*if (camera_pitch > 89.0f) {
+		GLfloat camera_x = x_offset * mouse_sensitivty;
+		GLfloat camera_y = y_offset * mouse_sensitivty;
+		camera_yaw += x_offset;
+		camera_pitch += y_offset;
+		/*if (camera_pitch > 89.0f) {
 		camera_pitch = 89.0f;
-	}
-	if (camera_yaw < -89.0f) {
+		}
+		if (camera_yaw < -89.0f) {
 		camera_yaw = -89.0f;
-	}*/
-	CameraUpdate();
+		}*/
+		CameraUpdate();
+	}
+	else {
+		if (bar_clicked == 1) {
+			bar_pos = x;
+		}
+	}
 	mv = lookAt(camera_position, camera_position + camera_front, camera_up);
 }
 
@@ -564,10 +578,18 @@ void My_Mouse(int button, int state, int x, int y)
 	{
 		oldX = x;
 		oldY = y;
+		float bar_width = 3;
+		if (x >= bar_pos - 3 && x <= bar_pos + 3) {
+			bar_clicked = 1;
+		}
+		else {
+			bar_clicked = 0;
+		}
 		printf("Mouse %d is pressed at (%d, %d)\n", button, x, y);
 	}
 	else if(state == GLUT_UP)
 	{
+		
 		printf("Mouse %d is released at (%d, %d)\n", button, x, y);
 	}
 }
@@ -638,6 +660,9 @@ void My_SpecialKeys(int key, int x, int y)
 		scene_mode = ((scene_mode - 1 + scene_num) % scene_num);
 		InitialCamera(scene_mode);
 		printf("Change scene to scene %d", scene_mode);
+		break;
+	case GLUT_KEY_SHIFT_L:
+		mouse_mode = (mouse_mode++)%2;
 		break;
 	default:
 		printf("Other special key is pressed at (%d, %d)\n", x, y);

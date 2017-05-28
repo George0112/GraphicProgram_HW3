@@ -2,7 +2,8 @@
 #define M_PI 3.1415926535897932384626433832795
 	                                                                               
 uniform sampler2D tex;  
-uniform int effect_mode;                                                       
+uniform int effect_mode;   
+uniform float bar_pos;                                                    
 	                                                                               
 out vec4 color;                                                                
 	                                                                               
@@ -24,20 +25,32 @@ void main(void)
 
 	offset[6] = vec2(-1.0, 1.0);
 	offset[7] = vec2(0.0, 1.0);
-	offset[8] = vec2(1.0, 1.0);     
-	if(effect_mode == 0){
+	offset[8] = vec2(1.0, 1.0);  
+	int mode;
+	float bar_width = 0.005;   
+	if(fs_in.texcoord.x < bar_pos - bar_width){
+		mode = effect_mode;
+	}else if(fs_in.texcoord.x > bar_pos + bar_width){
+		// TODO change if add new effect mode
+		mode = 6;
+	}else{
+		mode = -1;
+	}
+	if(mode == -1){
+		color = vec4(0.0, 1.0, 0.0, 1.0);
+	}else if(mode == 0){
 		vec4 texture_color_Left = texture(tex, fs_in.texcoord - 0.005);		
 		vec4 texture_color_Right = texture(tex, fs_in.texcoord + 0.005);		
 		vec4 texture_color = vec4(texture_color_Left.x * 0.299 + texture_color_Left.y * 0.587 + texture_color_Left.z * 0.114, texture_color_Right.y, texture_color_Right.z, 1.0f); 
 		color = texture_color;		
-	}else if(effect_mode == 1){
+	}else if(mode == 1){
 		float pixels = 600.0;
 		float dx = 15.0 * (1.0 / pixels);
 		float dy = 15.0 * (1.0 / pixels);
 		vec2 coord = vec2(dx * floor(fs_in.texcoord.x / dx), 
 						  dy * floor(fs_in.texcoord.y / dy));
 		color = texture(tex, coord);
-	}else if(effect_mode == 2){
+	}else if(mode == 2){
 		/*float x = fs_in.texcoord.x;
 		float y = fs_in.texcoord.y;
 		float d = atan(sqrt(x*x + y*y), sqrt(10.0 - x*x - y*y)) / M_PI;
@@ -60,7 +73,7 @@ void main(void)
 		}
 		
 		
-	}else if(effect_mode == 3){
+	}else if(mode == 3){
 		float kernal[9] = float[](
 			-1, -1, -1,
 			-1, 9, -1,
@@ -75,7 +88,7 @@ void main(void)
 			sum += tmp * kernal[i];
 		}
 		color = vec4(sum.rgb, 1.0);
-	}else if(effect_mode == 4){
+	}else if(mode == 4){
 		float kernal[9] = float[](
 			-1, -1, -1,
 			-1, 8, -1,
@@ -91,7 +104,7 @@ void main(void)
 			sum += gray * kernal[i];	
 		}
 		color = vec4(sum.rgb, 1.0);
-	}else if(effect_mode == 5){
+	}else if(mode == 5){
 		float sigma_e = 2.0f;
 		float sigma_r = 2.8f;
 		float phi = 3.4f;
