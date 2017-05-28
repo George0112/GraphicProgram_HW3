@@ -44,14 +44,26 @@ void main(void)
 		mode = effect_mode;
 	}else{
 		//TODO magnifier
-		mode  = effect_mode;
+		mode  = -2;
 	}
 	
 
 	if(mode == -1){
 		color = vec4(0.0, 1.0, 0.0, 1.0);
 	}else if(mode == -2){
-		
+		vec2 p = vec2(fs_in.texcoord.x, fs_in.texcoord.y);
+		vec2 m = vec2(mouse_pos.x, mouse_pos.y);
+		vec2 d = p - m;
+		float r = sqrt(dot(d, d));
+		float lensSize = 0.4;
+		float enlarge_rate = 2.0;
+		if(length(d) + r > lensSize + 0.01){
+			color = texture(tex, fs_in.texcoord.xy);
+		}else if(length(d) + r < lensSize - 0.01){
+			vec2 coord = mouse_pos.xy + (fs_in.texcoord.xy - mouse_pos.xy) / enlarge_rate;
+			color = texture(tex, vec2(coord.x, coord.y));
+		}
+
 	}else if(mode == 0){
 		vec4 texture_color_Left = texture(tex, fs_in.texcoord - 0.005);		
 		vec4 texture_color_Right = texture(tex, fs_in.texcoord + 0.005);		

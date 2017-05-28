@@ -580,7 +580,7 @@ void My_Mouse_Motion(int x, int y)
 	}
 	else if(mouse_mode == 2){
 		mouse_pos[0] = (float)x / window_resolution[0];
-		mouse_pos[1] = (float)y / window_resolution[1];
+		mouse_pos[1] = (window_resolution[1] - (float)y) / window_resolution[1];
 	}else {
 		if (bar_clicked == 1) {
 			bar_pos = x;
