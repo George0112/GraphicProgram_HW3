@@ -77,8 +77,8 @@ GLuint depth_rbo;
 GLuint fbo_tex;
 //
 GLuint effect_mode;
-int mode = 0;
-const int mode_num = 2;
+int mode = 3;
+const int mode_num = 5;
 
 void My_Reshape(int weight, int height);
 
