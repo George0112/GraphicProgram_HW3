@@ -79,8 +79,8 @@ float window_resolution[2] = { 600.0, 600.0 };
 GLuint window_resolution_id;
 //
 GLuint effect_mode;
-int mode = 7;
-const int mode_num = 9;
+int mode = 8;
+const int mode_num = 10;
 //comparision bar
 int bar_pos = window_resolution[0] / 2;
 int mouse_mode = 0;
@@ -414,7 +414,7 @@ void My_Init()
 void My_Display()
 {
 	delta_time = glutGet(GLUT_ELAPSED_TIME);
-	printf("ripple time: %f\n", ripple_delta_time);
+	//printf("ripple time: %f\n", ripple_delta_time);
 	if (ripple_delta_time < 1.0 && ripple_start == 1) {
 		ripple_delta_time += (((float)delta_time - (float)old_delta_time) / timer_speed / 200);
 	}

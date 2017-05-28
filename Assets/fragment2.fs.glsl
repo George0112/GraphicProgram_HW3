@@ -234,6 +234,16 @@ void main(void)
 				color = vec4(0.0, 0.0, 0.0, 1.0);
 			}
 		}
+	}else if(mode == 8){
+		float gamma = 0.6;
+		float color_num = 8.0;
+		vec3 c = texture(tex,  fs_in.texcoord).rgb;
+		c = pow(c, vec3(gamma, gamma, gamma));
+		c = c * color_num;
+		c = floor(c);
+		c = c / color_num;
+		c = pow(c, vec3(1.0/gamma));
+		color = vec4(c, 1.0);
 	}else{
 		vec2 img_size = resolution;
 		color = vec4(0);	
