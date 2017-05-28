@@ -79,8 +79,8 @@ float window_resolution[2] = { 600.0, 600.0 };
 GLuint window_resolution_id;
 //
 GLuint effect_mode;
-int mode = 6;
-const int mode_num = 8;
+int mode = 7;
+const int mode_num = 9;
 //comparision bar
 int bar_pos = window_resolution[0] / 2;
 int mouse_mode = 0;
@@ -92,8 +92,12 @@ GLuint mouse_mode_id;
 float mouse_pos[2] = { 0.5, 0.5 };
 //time
 int delta_time;
+int old_delta_time = 0;
 float time;
+float ripple_delta_time;
 GLuint time_id;
+GLuint ripple_delta_time_id;
+int ripple_start = 0;
 
 
 void My_Reshape(int weight, int height);
@@ -382,6 +386,7 @@ void My_Init()
 	mouse_mode_id = glGetUniformLocation(program2, "mouse_mode");
 	window_resolution_id = glGetUniformLocation(program2, "resolution");
 	time_id = glGetUniformLocation(program2, "time");
+	ripple_delta_time_id = glGetUniformLocation(program2, "delta_time");
 
 
 	glGenVertexArrays(1, &window_vao);
@@ -409,8 +414,19 @@ void My_Init()
 void My_Display()
 {
 	delta_time = glutGet(GLUT_ELAPSED_TIME);
+	printf("ripple time: %f\n", ripple_delta_time);
+	if (ripple_delta_time < 1.0 && ripple_start == 1) {
+		ripple_delta_time += (((float)delta_time - (float)old_delta_time) / timer_speed / 200);
+	}
+	else {
+		ripple_start = 0;
+		ripple_delta_time = 100;
+	}
+	
+	old_delta_time = delta_time;
+
 	time = (float)delta_time / timer_speed / 200;
-	printf("time: %f\n", time);
+	// printf("time: %f\n", time);
 	// TODO :
 	// (1) Bind the framebuffer object correctly
 	// (2) Draw the buffer with color
@@ -471,6 +487,7 @@ void My_Display()
 	glUniform2fv(window_resolution_id, 1, window_resolution);
 	glUniform1i(mouse_mode_id, mouse_mode);
 	glUniform1f(time_id, time);
+	glUniform1f(ripple_delta_time_id, (float)ripple_delta_time);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	
     glutSwapBuffers();
@@ -614,11 +631,16 @@ void My_Mouse(int button, int state, int x, int y)
 		else {
 			bar_clicked = 0;
 		}
+		if (mouse_mode == 3) {
+			ripple_start = 1;
+			ripple_delta_time = 0;
+			mouse_pos[0] = (float)x / window_resolution[0];
+			mouse_pos[1] = (window_resolution[1] - (float)y) / window_resolution[1];
+		}
 		printf("Mouse %d is pressed at (%d, %d)\n", button, x, y);
 	}
 	else if(state == GLUT_UP)
 	{
-		
 		printf("Mouse %d is released at (%d, %d)\n", button, x, y);
 	}
 }
@@ -691,7 +713,7 @@ void My_SpecialKeys(int key, int x, int y)
 		printf("Change scene to scene %d\n", scene_mode);
 		break;
 	case GLUT_KEY_SHIFT_L:
-		mouse_mode = (mouse_mode + 1)%3;
+		mouse_mode = (mouse_mode + 1)%4;
 		printf("Mouse mode change to mode #%d\n", mouse_mode);
 		break;
 	default:

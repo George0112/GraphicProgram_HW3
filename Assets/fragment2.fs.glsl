@@ -7,7 +7,8 @@ uniform float bar_pos;
 uniform vec2 mouse_pos; 
 uniform int mouse_mode;     
 uniform vec2 resolution;  
-uniform float time;                                        
+uniform float time;   
+uniform float delta_time;                                     
 	                                                                               
 out vec4 color;                                                                
 	                                                                               
@@ -43,9 +44,11 @@ void main(void)
 		}
 	}else if(mouse_mode == 1){
 		mode = effect_mode;
-	}else{
+	}else if(mouse_mode == 2){
 		//TODO magnifier
 		mode  = -2;
+	}else{
+		mode = -4;
 	}
 	
 
@@ -67,6 +70,20 @@ void main(void)
 
 	}else if(mode == -3){
 		color = texture(tex, fs_in.texcoord);
+	}else if(mode == -4){
+		vec2 uv = fs_in.texcoord.xy;
+		vec2 texcoord = uv;
+		float dis = distance(uv, mouse_pos);
+		vec3 shock_para = vec3(10.0, 0.8, 0.1);
+		if( (dis <= (delta_time + shock_para.z)) &&
+			(dis >= (delta_time - shock_para.z)) ){
+			float diff = dis - delta_time;
+			float pow_diff = 1.0 - pow(abs(diff * shock_para.x), shock_para.y);
+			float diff_time = diff * pow_diff;
+			vec2 diff_uv = normalize(uv - mouse_pos);
+			texcoord = uv + (diff_uv * diff_time);	
+		}
+		color = texture(tex, texcoord);
 	}else if(mode == 0){
 		vec4 texture_color_Left = texture(tex, fs_in.texcoord - 0.005);		
 		vec4 texture_color_Right = texture(tex, fs_in.texcoord + 0.005);		
@@ -190,6 +207,33 @@ void main(void)
 		float len = length(p);
 		vec2  coord = tc + (p/len)*cos(len*12.0-time*4.0)*0.03;
 		color = texture(tex, coord);
+	}else if(mode == 7){
+		float lum = length(texture2D(tex, fs_in.texcoord.xy).rgb);
+		color = vec4(1.0, 1.0, 1.0, 1.0);
+     
+		if (lum < 1.00) {
+			if (mod(gl_FragCoord.x + gl_FragCoord.y, 10.0) == 0.0) {
+				color = vec4(0.0, 0.0, 0.0, 1.0);
+			}
+		}
+     
+		if (lum < 0.75) {
+			if (mod(gl_FragCoord.x - gl_FragCoord.y, 10.0) == 0.0) {
+				color = vec4(0.0, 0.0, 0.0, 1.0);
+			}
+		}
+     
+		if (lum < 0.50) {
+			if (mod(gl_FragCoord.x + gl_FragCoord.y - 5.0, 10.0) == 0.0) {
+				color = vec4(0.0, 0.0, 0.0, 1.0);
+			}
+		}
+     
+		if (lum < 0.3) {
+			if (mod(gl_FragCoord.x - gl_FragCoord.y - 5.0, 10.0) == 0.0) {
+				color = vec4(0.0, 0.0, 0.0, 1.0);
+			}
+		}
 	}else{
 		vec2 img_size = resolution;
 		color = vec4(0);	
